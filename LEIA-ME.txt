@@ -1,0 +1,24 @@
+LEITOR — versão para instalar no celular e no computador
+=========================================================
+
+Esta pasta é o app completo. Para usar no Android, iPhone e computador,
+ela precisa estar num endereço https. Duas formas gratuitas:
+
+1) Netlify Drop (mais fácil, sem conta técnica)
+   - Acesse https://app.netlify.com/drop
+   - Arraste ESTA PASTA inteira para a página.
+   - Você recebe um link (ex.: https://nome-aleatorio.netlify.app).
+   - Crie uma conta grátis para o link não expirar e, se quiser, renomear.
+
+2) GitHub Pages
+   - Crie um repositório, envie estes arquivos para ele.
+   - Em Settings > Pages, escolha a branch main e a pasta raiz.
+   - O link fica https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/
+
+Depois, mande o link para os amigos:
+   - Android (Chrome): menu ⋮ > Instalar app / Adicionar à tela inicial
+   - iPhone (Safari): Compartilhar > Adicionar à Tela de Início
+   - Computador (Chrome/Edge): ícone de instalar na barra de endereço
+
+Depois da primeira abertura, o app funciona sem internet.
+Os arquivos e destaques de cada pessoa ficam só no aparelho dela.

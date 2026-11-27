@@ -15,7 +15,7 @@
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{
  // pré-carrega as bibliotecas de leitura para funcionar offline
  const L=['pdfjs-dist@3.11.174/build/pdf.min.js','pdfjs-dist@3.11.174/build/pdf.worker.min.js','mammoth@1.8.0/mammoth.browser.min.js','jszip@3.10.1/dist/jszip.min.js','marked@12.0.2/marked.min.js'];
- caches.open('leitor-v1').then(c=>L.forEach(p=>{const u='https://cdn.jsdelivr.net/npm/'+p;c.match(u).then(m=>m||fetch(u,{mode:'no-cors'}).then(res=>c.put(u,res)).catch(()=>{}))}))}).catch(()=>{}))</script>
+ caches.open('leitor-v2').then(c=>L.forEach(p=>{const u='https://cdn.jsdelivr.net/npm/'+p;c.match(u).then(m=>m||fetch(u,{mode:'no-cors'}).then(res=>c.put(u,res)).catch(()=>{}))}))}).catch(()=>{}))</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@400;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap" rel="stylesheet">
@@ -217,6 +217,59 @@ mark.sr.on{background:#f08c00;color:#000}
 #busy i{width:26px;height:26px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--acc);animation:spin .8s linear infinite;flex:none}
 #drop{position:fixed;inset:0;z-index:85;background:rgba(34,48,126,.88);color:#fff;display:grid;place-items:center;font:600 28px 'Literata',Georgia,serif;text-align:center;padding:20px;pointer-events:none}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* modo página */
+#reader.paged #page{position:fixed;left:0;right:0;top:calc(57px + env(safe-area-inset-top));bottom:calc(62px + env(safe-area-inset-bottom));padding:0;overflow:hidden;touch-action:pinch-zoom}
+#reader.paged #doc{max-width:none;height:100%;margin:0;padding:24px var(--pm,20px) 16px;column-width:var(--cw,600px);column-gap:var(--cg,40px);column-fill:auto;orphans:2;widows:2;will-change:transform}
+#reader.paged #doc img{max-height:calc(100vh - 230px)}
+#reader.paged #doc h1,#reader.paged #doc h2,#reader.paged #doc h3{break-after:avoid}
+#reader.paged #doc figure,#reader.paged #doc hr{break-inside:avoid}
+#reader.paged #endmark{display:none}
+/* filtro noturno */
+#night{position:fixed;inset:0;z-index:200;pointer-events:none}
+#night i{position:absolute;inset:0}
+#night .w{background:#ff8a2a;mix-blend-mode:multiply}
+#night .d{background:#000}
+/* leitura rápida */
+#rsvp{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+#rsvp .rtop{display:flex;align-items:center;gap:8px;max-width:900px;width:100%;margin:0 auto}
+#rsvp .rtop span{flex:1;color:var(--mut);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rsvp .stage{flex:1;display:grid;align-content:center;gap:26px;cursor:pointer;user-select:none;-webkit-user-select:none}
+#rsW{display:flex;font-family:var(--ff);font-size:clamp(34px,9vw,66px);line-height:1.2;white-space:pre;position:relative;padding:22px 0}
+#rsW .l{flex:1 1 0;text-align:right}#rsW .r{flex:1 1 0;text-align:left}
+#rsW .c{color:#e03131;font-weight:600}
+#rsW::before,#rsW::after{content:"";position:absolute;left:50%;width:2px;height:14px;background:var(--mut);opacity:.5;transform:translateX(-50%)}
+#rsW::before{top:0}#rsW::after{bottom:0}
+#rsCtx{max-width:60ch;margin:0 auto;color:var(--mut);font-family:var(--ff);font-size:17px;line-height:1.6;text-align:center;min-height:3.2em;padding:0 8px}
+#rsCtx b{color:var(--ink);background:rgba(255,212,59,.45);border-radius:3px}
+#rsvp .rbar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;max-width:640px;width:100%;margin:0 auto 14px}
+#rsvp .rbar i{display:block;height:100%;background:var(--acc)}
+#rsV{text-align:center;font-weight:700;margin-bottom:8px}
+#rsvp .rctl{display:flex;justify-content:center;align-items:center;gap:10px}
+#rsPlay{width:64px;height:64px;border-radius:50%;background:var(--acc);color:var(--accInk);display:grid;place-items:center}
+#rsPlay svg{fill:currentColor}
+/* estatísticas */
+.sthead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}.sthead h2{margin:0 auto 0 0}
+.stats{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(2,minmax(0,1fr)) minmax(0,1.6fr);gap:14px}
+.st{background:var(--chip);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.st small{color:var(--mut);font-size:14px}
+.st b{font:600 clamp(26px,3.4vw,34px)/1.1 'Literata',Georgia,serif;white-space:nowrap}
+.st b span{font:400 15px 'Atkinson Hyperlegible',system-ui,sans-serif;color:var(--mut)}
+.st .bar{margin:8px 0 2px}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;align-items:end;height:88px;margin-top:6px}
+.wk div{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.wk i{display:block;width:100%;max-width:28px;border-radius:5px 5px 2px 2px;background:var(--line);min-height:3px}
+.wk i.ok{background:var(--acc)}
+.wk span{font-size:12px;color:var(--mut)}
+.wk .td span{color:var(--ink);font-weight:700}
+.lnk{color:var(--acc);text-decoration:underline;font-size:14px;align-self:flex-start;min-height:32px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stats .wkc,.stats .tdc{grid-column:1/-1}}
+/* dicionário */
+#pop.dict{flex-direction:column;align-items:stretch;padding:6px;min-width:240px}
+#pop .dh{display:flex;align-items:center;gap:6px;padding:0 0 4px 12px;font-weight:700}
+#pop .dh span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pop a{color:#fff;text-decoration:none;min-height:44px;display:flex;align-items:center;padding:0 12px;border-radius:10px;font-size:15px;font-weight:700}
+#pop a:hover,#pop a:focus-visible{background:rgba(255,255,255,.12)}
+#pop a small{margin-left:auto;opacity:.65;font-size:12px;font-weight:400;padding-left:12px}
 @media (max-width:700px){
  #sheet{top:auto;left:0;width:100%;max-height:82vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0}
  .top .in{grid-template-columns:1fr}
@@ -244,6 +297,7 @@ mark.sr.on{background:#f08c00;color:#000}
   </div>
  </header>
  <div class="wrap">
+  <section class="sec" id="statSec" hidden><div class="sthead"><h2>Sua leitura</h2><button class="btn" id="goalBtn">Ajustar meta</button></div><div id="stats"></div></section>
   <section class="sec" id="contSec" hidden><h2>Continuar lendo</h2><div id="cont"></div></section>
   <section class="sec" id="shelfSec">
    <div class="tools" id="shelfTools"><h2>Biblioteca</h2>
@@ -257,7 +311,7 @@ mark.sr.on{background:#f08c00;color:#000}
    <div class="howto">
     <div><h3>Android (Chrome)</h3><ol><li>Abra o link do Leitor no Chrome.</li><li>Toque no menu ⋮.</li><li>Escolha <b>Adicionar à tela inicial</b> ou <b>Instalar app</b>.</li></ol></div>
     <div><h3>iPhone e iPad (Safari)</h3><ol><li>Abra o link do Leitor no Safari.</li><li>Toque em Compartilhar.</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li></ol></div>
-    <div><h3>Computador</h3><ol><li>Arraste arquivos para esta janela.</li><li>Atalhos no leitor: <b>/</b> busca, <b>F</b> foco, <b>M</b> marcador, <b>A</b> rolagem, <b>+</b> e <b>−</b> tamanho.</li></ol></div>
+    <div><h3>Computador</h3><ol><li>Arraste arquivos para esta janela.</li><li>Atalhos no leitor: <b>/</b> busca, <b>P</b> modo página, <b>R</b> leitura rápida, <b>F</b> foco, <b>N</b> filtro noturno, <b>M</b> marcador, <b>A</b> rolagem, <b>+</b> e <b>−</b> tamanho.</li></ol></div>
    </div>
   </section>
  </div>
@@ -301,6 +355,20 @@ mark.sr.on{background:#f08c00;color:#000}
  <div class="body" id="shB"></div>
 </aside>
 <div id="pop" hidden></div>
+<div id="rsvp" hidden role="dialog" aria-modal="true" aria-label="Leitura rápida">
+ <div class="rtop"><span id="rsCh"></span><button class="ib" id="rsClose" aria-label="Fechar leitura rápida"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+ <div class="stage" id="rsStage"><div id="rsW"><span class="l"></span><span class="c"></span><span class="r"></span></div><p id="rsCtx"></p></div>
+ <div class="rbar"><i id="rsP"></i></div>
+ <div id="rsV"></div>
+ <div class="rctl">
+  <button class="ib" id="rsBack" aria-label="Voltar uma frase"><svg class="i" viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button>
+  <button class="btn" id="rsSlow" aria-label="Mais devagar">−</button>
+  <button id="rsPlay" aria-label="Iniciar"></button>
+  <button class="btn" id="rsFast" aria-label="Mais rápido">+</button>
+  <button class="ib" id="rsFwd" aria-label="Avançar uma frase"><svg class="i" viewBox="0 0 24 24"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg></button>
+ </div>
+</div>
+<div id="night" hidden><i class="w"></i><i class="d"></i></div>
 <div id="dlg" hidden></div>
 <div id="toast" hidden role="status"></div>
 <div id="busy" hidden><div><i></i><span id="busyT">Abrindo…</span></div></div>
@@ -314,7 +382,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const IC={
  pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h9"/>',
  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',more:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
- x:'<path d="M6 6l12 12M18 6L6 18"/>',play:'<path d="M7 4l13 8-13 8z"/>',pause:'<path d="M8 5v14M16 5v14"/>',dl:'<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>'};
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',play:'<path d="M7 4l13 8-13 8z"/>',pause:'<path d="M8 5v14M16 5v14"/>',dl:'<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24">${IC[n]}</svg>`;
 const CDN='https://cdn.jsdelivr.net/npm/';
 const LIB={pdf:CDN+'pdfjs-dist@3.11.174/build/pdf.min.js',pdfw:CDN+'pdfjs-dist@3.11.174/build/pdf.worker.min.js',mammoth:CDN+'mammoth@1.8.0/mammoth.browser.min.js',zip:CDN+'jszip@3.10.1/dist/jszip.min.js',marked:CDN+'marked@12.0.2/marked.min.js'};
@@ -338,10 +406,20 @@ const store={db:null,mem:{docs:new Map(),content:new Map()},
 };
 
 /* ---------- ajustes ---------- */
-const DEF={theme:'auto',font:'literata',size:19,lh:1.7,width:66,just:false,ind:false,bionic:false,focus:false,ruler:false,rulerY:.4,speed:4,sort:'recent'};
+const DEF={theme:'auto',font:'literata',size:19,lh:1.7,width:66,just:false,ind:false,bionic:false,focus:false,ruler:false,rulerY:.4,speed:4,sort:'recent',mode:'scroll',night:'off',warm:50,dim:15,rsvp:300};
 const S=Object.assign({},DEF);
 try{Object.assign(S,JSON.parse(localStorage.getItem('leitor.ajustes')||'{}'))}catch(e){}
 const saveS=()=>{try{localStorage.setItem('leitor.ajustes',JSON.stringify(S))}catch(e){}};
+
+/* ---------- estatísticas ---------- */
+const ST={days:{},wW:0,wMs:0,goalType:'min',goal:20};
+try{Object.assign(ST,JSON.parse(localStorage.getItem('leitor.estat')||'{}'))}catch(e){}
+const saveST=()=>{try{localStorage.setItem('leitor.estat',JSON.stringify(ST))}catch(e){}};
+const dayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function wpm(){return ST.wMs>=180000?Math.max(80,Math.min(1000,Math.round(ST.wW/(ST.wMs/60000)))):WPM}
+const dur=ms=>{const m=Math.floor(ms/60000);return m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+String(m%60).padStart(2,'0')+' min':''}`};
+const goalVal=(x,t=ST.goalType)=>t==='min'?(x.ms||0)/60000:(x.w||0)/250;
+function streak(){let n=0;const d=new Date();if(!(ST.days[dayKey(d)]||{}).done)d.setDate(d.getDate()-1);while((ST.days[dayKey(d)]||{}).done){n++;d.setDate(d.getDate()-1)}return n}
 
 /* ---------- utilidades de interface ---------- */
 let toastT;
@@ -362,7 +440,7 @@ function download(name,text){const a=document.createElement('a');a.href=URL.crea
 const loaded={};
 function loadScript(u){return loaded[u]||(loaded[u]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=u;s.onload=res;s.onerror=()=>{delete loaded[u];s.remove();rej(new Error('Não consegui carregar o leitor deste formato. Verifique a conexão com a internet.'))};document.head.appendChild(s)}))}
 function ago(t){if(!t)return'';const m=(Date.now()-t)/6e4;if(m<1)return'agora';if(m<60)return`há ${Math.round(m)} min`;const d0=new Date();d0.setHours(0,0,0,0);if(t>=d0)return'hoje';if(t>=d0-864e5)return'ontem';const d=Math.round((d0-t)/864e5);if(d<7)return`há ${d} dias`;return new Date(t).toLocaleDateString('pt-BR',{day:'numeric',month:'short'})}
-const mins=w=>{const m=Math.max(1,Math.round(w/WPM));return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60?String(m%60).padStart(2,'0')+' min':''}`.trim()};
+const mins=w=>{const m=Math.max(1,Math.round(w/wpm()));return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60?String(m%60).padStart(2,'0')+' min':''}`.trim()};
 const hash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -541,19 +619,36 @@ async function importFiles(files){files=[...files];if(!files.length)return;let l
 /* ---------- biblioteca ---------- */
 let docs=[];
 function coverHTML(d,sm){const c=COVERS[hash(d.title)%COVERS.length];return `<div class="cover" style="background:${c}"><small><span>${esc(d.type)}</span>${sm?'':`<span>${d.words?mins(d.words):''}</span>`}</small><b>${esc(d.title)}</b><div class="pg"><i style="width:${Math.round((d.progress||0)*100)}%"></i></div></div>`}
-async function renderLib(){docs=await store.all();
+async function renderLib(){docs=await store.all();renderStats();
  const q=$('#libQ').value.trim().toLowerCase();$('#libSort').value=S.sort;
  const sorters={recent:(a,b)=>(b.opened||b.added)-(a.opened||a.added),added:(a,b)=>b.added-a.added,title:(a,b)=>a.title.localeCompare(b.title,'pt'),prog:(a,b)=>(b.progress||0)-(a.progress||0)};
  const list=docs.filter(d=>!q||d.title.toLowerCase().includes(q)).sort(sorters[S.sort]||sorters.recent);
  const lastOpen=[...docs].filter(d=>d.opened&&d.progress<.995).sort((a,b)=>b.opened-a.opened)[0];
  $('#contSec').hidden=!lastOpen;
  if(lastOpen){const p=Math.round(lastOpen.progress*100);
-  $('#cont').innerHTML=`<button class="cont" data-open="${lastOpen.id}">${coverHTML(lastOpen,true)}<div><h3>${esc(lastOpen.title)}</h3><div class="meta mut"><span>${p}% lido</span><span>${mins(lastOpen.words*(1-lastOpen.progress))} restantes</span><span>${ago(lastOpen.opened)}</span></div><div class="bar"><i style="width:${p}%"></i></div><span class="btn acc">Continuar</span></div></button>`}
+  $('#cont').innerHTML=`<button class="cont" data-open="${lastOpen.id}">${coverHTML(lastOpen,true)}<div><h3>${esc(lastOpen.title)}</h3><div class="meta mut"><span>${p}% lido</span><span>${mins(lastOpen.words*(1-lastOpen.progress))} restantes</span>${lastOpen.readMs>=60000?`<span>${dur(lastOpen.readMs)} de leitura</span>`:''}<span>${ago(lastOpen.opened)}</span></div><div class="bar"><i style="width:${p}%"></i></div><span class="btn acc">Continuar</span></div></button>`}
  $('#shelfTools').hidden=false;$('#libQ').hidden=$('#libSort').hidden=docs.length<2;
  const sh=$('#shelf');
  if(!docs.length){sh.innerHTML=`<div class="empty"><h3>Sua estante está vazia</h3><p class="mut">Arraste um arquivo para esta janela ou toque em <b>Abrir arquivo</b>.</p><div class="chips"><span>PDF</span><span>DOCX</span><span>ODT</span><span>EPUB</span><span>TXT</span><span>Markdown</span><span>HTML</span></div><button class="btn pri" data-act="open">Abrir arquivo</button></div>`;return}
  if(!list.length){sh.innerHTML=`<p class="mut">Nenhum título com “${esc(q)}”.</p>`;return}
  sh.innerHTML=`<div class="shelf">${list.map(d=>`<div class="book"><button class="open" data-open="${d.id}" aria-label="Abrir ${esc(d.title)}">${coverHTML(d)}</button><div class="t">${esc(d.title)}</div><div class="m">${d.progress>=.995?'Concluído':d.opened?`${Math.round(d.progress*100)}% · ${ago(d.opened)}`:'Não iniciado'}${d.hl.length?` · ${d.hl.length} destaque${d.hl.length>1?'s':''}`:''}</div><button class="ib more" data-menu="${d.id}" aria-label="Opções de ${esc(d.title)}">${ic('more')}</button></div>`).join('')}</div>`}
+function renderStats(){const sec=$('#statSec');if(!docs.length&&!Object.keys(ST.days).length){sec.hidden=true;return}sec.hidden=false;
+ const gt=ST.goalType,g=ST.goal,un=gt==='min'?'min':'páginas';const today=ST.days[dayKey()]||{ms:0,w:0};const v=goalVal(today);const pct=Math.min(100,v/g*100);
+ const wk=[];for(let k=6;k>=0;k--){const d=new Date();d.setDate(d.getDate()-k);const x=ST.days[dayKey(d)]||{ms:0,w:0};wk.push({d,ms:x.ms||0,v:goalVal(x),ok:!!x.done,td:k===0})}
+ const mx=Math.max(g,...wk.map(x=>x.v))||1,sk=streak(),sp=ST.wMs>=180000;
+ $('#stats').innerHTML=`<div class="stats">
+ <div class="st tdc"><small>Hoje</small><b>${Math.floor(v)} <span>de ${g} ${un}</span></b><div class="bar"><i style="width:${pct}%"></i></div><small>${pct>=100?'Meta cumprida':`Faltam ${Math.ceil(g-v)} ${un}`}</small></div>
+ <div class="st"><small>Sequência</small><b>${sk} <span>${sk===1?'dia':'dias'}</span></b><small>seguidos com a meta</small></div>
+ <div class="st"><small>Sua velocidade</small><b>${sp?wpm():'—'} <span>${sp?'palavras/min':''}</span></b><small>${sp?`medida em ${dur(ST.wMs)} de leitura`:'Leia alguns minutos para eu medir'}</small>${sp?'<button class="lnk" data-act="wreset">Medir de novo</button>':''}</div>
+ <div class="st wkc"><small>Últimos 7 dias · ${dur(wk.reduce((a,x)=>a+x.ms,0))}</small><div class="wk">${wk.map(x=>`<div class="${x.td?'td':''}" title="${dur(x.ms)}"><i class="${x.ok?'ok':''}" style="height:${Math.max(3,Math.round(x.v/mx*62))}px"></i><span>${x.td?'hoje':x.d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','').slice(0,3)}</span></div>`).join('')}</div></div></div>`}
+function goalDialog(){const d=$('#dlg');let gt=ST.goalType,g=ST.goal;
+ const draw=()=>{d.innerHTML=`<div class="box" role="dialog" aria-modal="true" aria-label="Meta diária"><h2>Meta diária</h2><p>Conte por tempo de leitura ou por páginas (1 página = 250 palavras, como num livro).</p><div class="seg"><button data-gt="min" aria-pressed="${gt==='min'}">Minutos</button><button data-gt="pag" aria-pressed="${gt==='pag'}">Páginas</button></div><div class="step"><button class="btn" data-d="-1" aria-label="Diminuir">−</button><b>${g} ${gt==='min'?'min':'páginas'} por dia</b><button class="btn" data-d="1" aria-label="Aumentar">+</button></div><div class="acts"><button class="btn" data-r="0">Cancelar</button><button class="btn acc" data-r="1">Salvar</button></div></div>`};
+ draw();d.hidden=false;const close=()=>{d.hidden=true;d.innerHTML='';document.removeEventListener('keydown',kd,true)};
+ const kd=e=>{if(e.key==='Escape'){e.stopPropagation();close()}};document.addEventListener('keydown',kd,true);
+ d.onclick=e=>{const b=e.target.closest('button');if(!b){if(e.target===d)close();return}const st=gt==='min'?5:1;
+  if(b.dataset.gt){if(gt!==b.dataset.gt){gt=b.dataset.gt;g=gt==='min'?20:10}draw()}
+  else if(b.dataset.d){g=Math.max(st,Math.min(gt==='min'?600:300,g+st*+b.dataset.d));draw()}
+  else if(b.dataset.r){if(b.dataset.r==='1'){ST.goalType=gt;ST.goal=g;const t=ST.days[dayKey()];if(t)t.done=goalVal(t)>=g;saveST();renderStats()}close()}}}
 function closeMenu(){const m=$('.menu');if(m)m.remove()}
 function bookMenu(id,btn){closeMenu();const r=btn.getBoundingClientRect();const m=document.createElement('div');m.className='menu';
  m.innerHTML=`<button data-m="ren">${ic('pen')}Renomear</button><button data-m="del" class="del">${ic('trash')}Remover</button>`;document.body.appendChild(m);
@@ -563,7 +658,10 @@ function bookMenu(id,btn){closeMenu();const r=btn.getBoundingClientRect();const 
   else if(await dialog({title:'Remover da biblioteca?',text:`“${d.title}” será apagado deste aparelho, com progresso e destaques. Não dá para desfazer.`,ok:'Remover',danger:true})){await store.del(id);renderLib();toast('Removido')}}}
 
 /* ---------- leitor ---------- */
-const R=$('#reader'),D=$('#doc');
+const R=$('#reader'),D=$('#doc'),PG=$('#page');
+const RM=matchMedia('(prefers-reduced-motion: reduce)');
+let pageW=0,curPage=0;
+const paged=()=>S.mode==='page';
 let doc=null,blocks=[],els=[],cum=[],heads=[],hitMap=new Map(),hits=[],hi=-1,txtCache=[],userScrolled=false,saveT=0,lastY=0;
 function bionic(h){return h.replace(/(^|>)([^<]+)/g,(m,a,t)=>a+t.split(/(&#?\w+;)/).map((s,k)=>k%2?s:s.replace(/[\p{L}\p{N}]+/gu,w=>{if(w.length<2)return w;const n=Math.ceil(w.length*.45);return`<b class="bn">${w.slice(0,n)}</b>${w.slice(n)}`})).join(''))}
 function inner(b){return b.t==='pre'||!S.bionic?b.h:bionic(b.h)}
@@ -585,12 +683,27 @@ function renderDoc(){D.innerHTML=blocks.map(blockHTML).join('');els=[...D.childN
 function applyS(){document.body.dataset.t=S.theme;
  R.style.setProperty('--fs',S.size+'px');R.style.setProperty('--lh',S.lh);R.style.setProperty('--w',S.width+'ch');R.style.setProperty('--ff',(FONTS[S.font]||FONTS.literata)[1]);
  R.classList.toggle('just',S.just);R.classList.toggle('ind',S.ind);R.classList.toggle('focus',S.focus);
- $('#ruler').hidden=!S.ruler||R.hidden;placeRuler();saveS()}
+ R.classList.toggle('paged',paged());if(paged()){if(!R.hidden)layoutPaged()}else{D.style.transform='';curPage=0}
+ $('#ruler').hidden=!S.ruler||R.hidden;placeRuler();applyNight();saveS()}
+function chW(){const p=document.createElement('span');p.style.cssText='position:absolute;visibility:hidden;width:10ch;font:inherit';D.appendChild(p);const w=p.offsetWidth/10;p.remove();return w||9}
+function layoutPaged(){if(!paged())return;pageW=PG.clientWidth||innerWidth;const tw=Math.min(pageW-40,S.width*chW());const m=Math.max(20,Math.floor((pageW-tw)/2));
+ D.style.setProperty('--pm',m+'px');D.style.setProperty('--cw',(pageW-2*m)+'px');D.style.setProperty('--cg',(2*m)+'px')}
+function pageCount(){if(!pageW||!els.length)return 1;const last=els[els.length-1].getClientRects();const r=last.length?last[last.length-1]:els[els.length-1].getBoundingClientRect();return Math.max(1,Math.ceil((r.right-D.getBoundingClientRect().left-1)/pageW))}
+function setPage(k,d){k=Math.max(0,Math.min(pageCount()-1,k));const x=-k*pageW;
+ if(d&&!RM.matches)D.animate([{transform:`translateX(${x+d*28}px)`,opacity:.3},{transform:`translateX(${x}px)`,opacity:1}],{duration:220,easing:'ease-out'});
+ D.style.transform=`translateX(${x}px)`;curPage=k;if(!raf)raf=requestAnimationFrame(()=>{raf=0;update()})}
+function turn(d){if(!paged()||!doc)return;const k=curPage+d;if(k<0||k>=pageCount())return;act();userScrolled=true;hidePop();setPage(k,d)}
+function curPosPaged(){const L=D.getBoundingClientRect().left+curPage*pageW+1;const lastR=el=>{const rs=el.getClientRects();return rs.length?rs[rs.length-1]:el.getBoundingClientRect()};
+ let lo=0,hi2=els.length-1,ans=els.length-1;while(lo<=hi2){const m=(lo+hi2)>>1;if(lastR(els[m]).right>L){ans=m;hi2=m-1}else lo=m+1}
+ const rs=[...els[ans].getClientRects()];const tot=rs.reduce((a,r)=>a+r.height,0);const before=rs.filter(r=>r.right<=L).reduce((a,r)=>a+r.height,0);
+ return{i:ans,o:tot?Math.min(1,before/tot):0}}
 function keepPos(fn){const p=doc&&!R.hidden?curPos():null;fn();if(p)requestAnimationFrame(()=>goTo(p.i,p.o))}
-function curPos(y=Y0){if(!els.length)return{i:0,o:0};let lo=0,hi2=els.length-1,ans=els.length-1;
+function curPos(y=Y0){if(!els.length)return{i:0,o:0};if(paged())return curPosPaged();let lo=0,hi2=els.length-1,ans=els.length-1;
  while(lo<=hi2){const m=(lo+hi2)>>1;if(els[m].getBoundingClientRect().bottom>y){ans=m;hi2=m-1}else lo=m+1}
  const r=els[ans].getBoundingClientRect();return{i:ans,o:r.height?Math.min(1,Math.max(0,(y-r.top)/r.height)):0}}
-function goTo(i,o=0,smooth){const el=els[Math.max(0,Math.min(els.length-1,i))];if(!el)return;const r=el.getBoundingClientRect();window.scrollTo({top:Math.max(0,scrollY+r.top+o*r.height-Y0),behavior:smooth?'smooth':'auto'})}
+function goTo(i,o=0,smooth){const el=els[Math.max(0,Math.min(els.length-1,i))];if(!el)return;
+ if(paged()){const rs=[...el.getClientRects()];if(!rs.length)return;let t=rs[0];if(rs.length>1){const tot=rs.reduce((a,r)=>a+r.height,0);let acc=0;for(const r of rs){t=r;acc+=r.height;if(acc>o*tot+1)break}}
+  setPage(Math.floor((t.left-D.getBoundingClientRect().left+2)/pageW));return}const r=el.getBoundingClientRect();window.scrollTo({top:Math.max(0,scrollY+r.top+o*r.height-Y0),behavior:smooth?'smooth':'auto'})}
 const fracAt=(i,off)=>Math.min(1,((cum[i]||0)+off)/(doc.chars||1));
 function fracOf(p){const tot=doc.chars||1;const b=blocks[p.i];return Math.min(1,((cum[p.i]||0)+(b?b.n*p.o:0))/tot)}
 function posOfFrac(f){const t=f*(doc.chars||1);let lo=0,hi2=blocks.length-1,ans=0;while(lo<=hi2){const m=(lo+hi2)>>1;if(cum[m]<=t){ans=m;lo=m+1}else hi2=m-1}const b=blocks[ans];return{i:ans,o:b&&b.n?Math.min(1,(t-cum[ans])/b.n):0}}
@@ -598,13 +711,13 @@ function chapterAt(i){let h=null;for(const x of heads){if(x>i)break;h=x}return h
 function plain(i){return txtCache[i]??(txtCache[i]=els[i]?els[i].textContent:'')}
 let focusCur=-1;
 function update(){if(!doc||R.hidden)return;const p=curPos();
- const atEnd=scrollY+innerHeight>=document.documentElement.scrollHeight-4;
+ const pc=paged()?pageCount():0;const atEnd=paged()?curPage>=pc-1:scrollY+innerHeight>=document.documentElement.scrollHeight-4;
  const f=atEnd?1:fracOf(p);doc.pos=p;doc.progress=Math.max(f,0);
  if(!dragging)$('#prog').value=Math.round(f*1000);
  const ch=chapterAt(p.i);$('#chap').textContent=ch!=null?plain(ch):doc.title;
- $('#pct').textContent=`${Math.round(f*100)}% · ${f>=.995?'fim':mins(doc.words*(1-f))+' restantes'}`;
+ $('#pct').textContent=`${paged()?`Pág. ${curPage+1} de ${pc} · `:''}${Math.round(f*100)}% · ${f>=.995?'fim':mins(doc.words*(1-f))}`;
  $('#bmBtn').setAttribute('aria-pressed',doc.bm.some(b=>b.i===p.i));
- if(S.focus){const fy=S.ruler?S.rulerY*innerHeight:innerHeight*.38;const c=curPos(fy).i;if(c!==focusCur){if(els[focusCur])els[focusCur].classList.remove('cur');focusCur=c;els[c]&&els[c].classList.add('cur')}}
+ if(S.focus){const fy=S.ruler?S.rulerY*innerHeight:innerHeight*.38;const rb=(paged()?PG:D).getBoundingClientRect();const hit=document.elementFromPoint(rb.left+rb.width/2,fy);const he=hit&&hit.closest?hit.closest('#doc > [data-i]'):null;const c=he?+he.dataset.i:(focusCur>=0?focusCur:curPos(fy).i);if(c!==focusCur){if(els[focusCur])els[focusCur].classList.remove('cur');focusCur=c;els[c]&&els[c].classList.add('cur')}}
  clearTimeout(saveT);saveT=setTimeout(saveDoc,700)}
 function saveDoc(){if(doc){doc.opened=Date.now();store.put(doc)}}
 async function openDoc(id){busy('Abrindo…');try{
@@ -613,12 +726,12 @@ async function openDoc(id){busy('Abrindo…');try{
  doc=d;doc.hl=doc.hl||[];doc.bm=doc.bm||[];blocks=c;hitMap=new Map();hits=[];hi=-1;txtCache=[];foldCache=[];focusCur=-1;
  cum=[];let acc=0;heads=[];blocks.forEach((b,i)=>{cum.push(acc);acc+=b.n||0;if(/^h[123]$/.test(b.t))heads.push(i)});doc.chars=acc||doc.chars;
  $('#lib').hidden=true;R.hidden=false;R.classList.remove('imm');$('#find').hidden=true;$('#rTitle').textContent=doc.title;
- renderDoc();applyS();
+ curPage=0;D.style.transform='';renderDoc();applyS();
  if(location.hash!=='#ler')try{location.hash='ler'}catch(e){}
  userScrolled=false;requestAnimationFrame(()=>{goTo(doc.pos.i,doc.pos.o);lastY=scrollY;update()});
- document.fonts&&document.fonts.ready.then(()=>{if(!userScrolled&&doc)goTo(doc.pos.i,doc.pos.o)});
+ document.fonts&&document.fonts.ready.then(()=>{if(!userScrolled&&doc){layoutPaged();goTo(doc.pos.i,doc.pos.o)}});
  }finally{busy('')}}
-function closeDoc(){if(!doc)return;stopAuto();update();saveDoc();closeSheet();hidePop();R.hidden=true;$('#ruler').hidden=true;$('#lib').hidden=false;doc=null;D.innerHTML='';els=[];window.scrollTo(0,0);renderLib()}
+function closeDoc(){if(!doc)return;if(rs.on)closeRSVP();stopAuto();clearTimeout(saveT);saveDoc();closeSheet();hidePop();R.hidden=true;$('#ruler').hidden=true;$('#lib').hidden=false;doc=null;D.innerHTML='';D.style.transform='';curPage=0;els=[];window.scrollTo(0,0);renderLib()}
 
 /* ---------- destaques ---------- */
 let pend=null,popMode='',curHL=null,lastPointer='mouse';
@@ -627,27 +740,37 @@ function pt(node,off,end){let el=node.nodeType===1?node:node.parentElement;if(!e
  const blk=el.closest('[data-i]');if(!blk||blk.parentNode!==D)return null;
  const r=document.createRange();r.setStart(blk,0);try{r.setEnd(node,off)}catch(e){return null}return{i:+blk.dataset.i,o:r.toString().length}}
 function onSel(){if(!doc||R.hidden)return;const s=getSelection();
- if(!s.rangeCount||s.isCollapsed){if(popMode==='new')hidePop();return}
+ if(!s.rangeCount||s.isCollapsed){if(popMode==='new'||popMode==='dict')hidePop();return}
+ if(popMode==='dict')return;
  const r=s.getRangeAt(0);if(!D.contains(r.commonAncestorContainer)&&r.commonAncestorContainer!==D)return;
  const a=pt(r.startContainer,r.startOffset,false),b=pt(r.endContainer,r.endOffset,true);
  if(!a||!b||b.i<a.i||(b.i===a.i&&b.o<=a.o))return;
  pend={a,b,text:s.toString().replace(/\s+/g,' ').trim().slice(0,4000)};showPop('new',r.getBoundingClientRect())}
-function showPop(mode,rect,color){popMode=mode;const p=$('#pop');
+let popRect=null;
+function showPop(mode,rect,color){popMode=mode;popRect=rect;const p=$('#pop');p.classList.remove('dict');const wt=(mode==='new'?pend&&pend.text:(doc.hl.find(x=>x.id===curHL)||{}).text)||'';const isWord=wt&&wt.length<=60&&wt.split(/\s+/).length<=4;
  p.innerHTML=Object.keys(COLORS).map(c=>`<button class="dot" data-c="${c}" aria-label="Destacar em ${COLORS[c]}" aria-pressed="${color===c}"><i class="c-${c}" style="background:${{am:'#fcc419',ve:'#51cf66',az:'#4dabf7',ro:'#f783ac'}[c]}"></i></button>`).join('')+
-  `<span class="sep"></span><button class="ib" data-a="note" aria-label="Nota">${ic('pen')}</button><button class="ib" data-a="copy" aria-label="Copiar">${ic('copy')}</button>${mode==='edit'?`<button class="ib" data-a="del" aria-label="Remover destaque">${ic('trash')}</button>`:''}`;
- p.hidden=false;const w=p.offsetWidth,h=p.offsetHeight;
+  `<span class="sep"></span><button class="ib" data-a="note" aria-label="Nota">${ic('pen')}</button><button class="ib" data-a="copy" aria-label="Copiar">${ic('copy')}</button>${isWord?`<button class="ib" data-a="dict" aria-label="Consultar no dicionário">${ic('book')}</button>`:''}${mode==='edit'?`<button class="ib" data-a="del" aria-label="Remover destaque">${ic('trash')}</button>`:''}`;
+ p.hidden=false;placePop()}
+function placePop(){const p=$('#pop'),rect=popRect;if(!rect)return;const w=p.offsetWidth,h=p.offsetHeight;
  let x=rect.left+rect.width/2-w/2;x=Math.max(8,Math.min(innerWidth-w-8,x));
  let y=lastPointer==='touch'?rect.bottom+14:rect.top-h-10;
  if(y<64)y=rect.bottom+14;if(y+h>innerHeight-70)y=Math.max(64,rect.top-h-10);
  p.style.left=x+'px';p.style.top=y+'px'}
-function hidePop(){$('#pop').hidden=true;popMode='';curHL=null}
+function hidePop(){$('#pop').hidden=true;$('#pop').classList.remove('dict');popMode='';curHL=null}
+function showDict(t){const w=t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'').trim();if(!w)return;
+ const slug=w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');const e=encodeURIComponent(w.toLowerCase());
+ const L=[['Dicio','https://www.dicio.com.br/'+slug+'/','significado'],['Michaelis','https://michaelis.uol.com.br/moderno-portugues/busca/portugues-brasileiro/'+e+'/','significado'],['Wikcionário','https://pt.wiktionary.org/wiki/'+e,'origem e usos'],['Sinônimos','https://www.sinonimos.com.br/'+slug+'/','palavras parecidas'],['Google Tradutor','https://translate.google.com/?sl=auto&tl=pt&op=translate&text='+encodeURIComponent(w),'outro idioma']];
+ const p=$('#pop');p.classList.add('dict');p.innerHTML=`<div class="dh"><span>${esc(w)}</span><button class="ib" data-a="close" aria-label="Fechar">${ic('x')}</button></div>`+L.map(([n,u,s])=>`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${n}<small>${s}</small></a>`).join('');
+ popMode='dict';placePop()}
 async function addHL(c){if(!pend)return null;const h={id:uid(),a:pend.a,b:pend.b,c,note:'',text:pend.text,at:Date.now()};
  doc.hl.push(h);doc.hl.sort((x,y)=>x.a.i-y.a.i||x.a.o-y.a.o);getSelection().removeAllRanges();pend=null;hidePop();hlBlocks(h).forEach(paint);saveDoc();return h}
 async function editNote(h){const v=await dialog({title:h.note?'Editar nota':'Nova nota',quote:h.text,input:h.note||'',ok:'Salvar'});
  if(v===null)return;h.note=v.trim();hlBlocks(h).forEach(paint);saveDoc();refreshSheet()}
 function delHL(id){const h=doc.hl.find(x=>x.id===id);if(!h)return;doc.hl=doc.hl.filter(x=>x!==h);hlBlocks(h).forEach(paint);saveDoc();refreshSheet();toast('Destaque removido')}
 $('#pop').addEventListener('pointerdown',e=>e.preventDefault());
-$('#pop').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+$('#pop').addEventListener('click',async e=>{if(e.target.closest('a')){setTimeout(()=>{getSelection().removeAllRanges();hidePop()},150);return}const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.a==='close'){hidePop();return}
+ if(b.dataset.a==='dict'){const t=popMode==='new'?pend&&pend.text:(doc.hl.find(x=>x.id===curHL)||{}).text;if(t)showDict(t);return}
  if(popMode==='new'){
   if(b.dataset.c)addHL(b.dataset.c);
   else if(b.dataset.a==='note'){const h=await addHL('am');if(h)editNote(h)}
@@ -677,7 +800,11 @@ function refreshSheet(){if(!sheetKind||!doc)return;const B=$('#shB');
  B.innerHTML=h}
 function setHTML(){const seg=(k,opts)=>`<div class="seg">${opts.map(([v,l,st])=>`<button data-set="${k}" data-v="${v}" aria-pressed="${String(S[k])===String(v)}"${st?` style="${st}"`:''}>${l}</button>`).join('')}</div>`;
  const tg=(k,l,sub)=>`<button class="tg" role="switch" data-tg="${k}" aria-checked="${!!S[k]}"><span class="x">${l}<small>${sub}</small></span><span class="s"></span></button>`;
- return`<div class="grp"><h3>Tema</h3><div class="sw">${Object.entries(THEMES).map(([k,[l,bg,fg]])=>`<button data-set="theme" data-v="${k}" aria-pressed="${S.theme===k}" style="background:${bg};color:${fg}"><span style="${k==='auto'?'background:#fff;color:#1b1d24;padding:0 6px;border-radius:6px':''}">${l}</span></button>`).join('')}</div></div>
+ return`<div class="grp"><h3>Modo de leitura</h3>${seg('mode',[['scroll','Rolagem'],['page','Páginas']])}</div>
+ <div class="grp"><h3>Tema</h3><div class="sw">${Object.entries(THEMES).map(([k,[l,bg,fg]])=>`<button data-set="theme" data-v="${k}" aria-pressed="${S.theme===k}" style="background:${bg};color:${fg}"><span style="${k==='auto'?'background:#fff;color:#1b1d24;padding:0 6px;border-radius:6px':''}">${l}</span></button>`).join('')}</div></div>
+ <div class="grp"><h3>Filtro noturno</h3>${seg('night',[['off','Desligado'],['on','Ligado'],['auto','Das 19h às 6h']])}
+ <div class="rng" style="margin-top:10px"><span style="min-width:92px;text-align:left;color:var(--ink)">Tom quente</span><input type="range" min="0" max="100" step="5" value="${S.warm}" data-rng="warm" aria-label="Tom quente"><span>${S.warm}%</span></div>
+ <div class="rng"><span style="min-width:92px;text-align:left;color:var(--ink)">Escurecer</span><input type="range" min="0" max="70" step="5" value="${S.dim}" data-rng="dim" aria-label="Escurecer"><span>${S.dim}%</span></div></div>
  <div class="grp"><h3>Fonte</h3>${seg('font',Object.entries(FONTS).map(([k,[l,ff]])=>[k,l,`font-family:${ff.replace(/"/g,"'")}`]))}</div>
  <div class="grp"><h3>Tamanho do texto</h3><div class="step"><button class="btn" data-step="-1" aria-label="Diminuir">A−</button><b>${S.size} px</b><button class="btn" data-step="1" aria-label="Aumentar">A+</button></div></div>
  <div class="grp"><h3>Espaço entre linhas</h3><div class="rng"><input type="range" min="1.2" max="2.4" step="0.05" value="${S.lh}" data-rng="lh" aria-label="Espaço entre linhas"><span>${(+S.lh).toFixed(2)}</span></div></div>
@@ -688,23 +815,25 @@ function setHTML(){const seg=(k,opts)=>`<div class="seg">${opts.map(([v,l,st])=>
  ${tg('focus','Modo foco','Esmaece tudo menos o parágrafo que você está lendo')}
  ${tg('ruler','Régua de leitura','Uma faixa que guia o olho; arraste o botão amarelo')}
  ${tg('bionic','Âncoras de leitura','Negrito no início das palavras para ler mais rápido')}
- <button class="tg" data-a="auto"><span class="x">Rolagem automática<small>O texto sobe sozinho; ajuste a velocidade</small></span>${ic('play')}</button>
+ <button class="tg" data-a="rsvp"><span class="x">Leitura rápida<small>Uma palavra por vez, a partir de onde você está</small></span>${ic('play')}</button>
+ <button class="tg" data-a="auto"><span class="x">${paged()?'Virar páginas sozinho':'Rolagem automática'}<small>${paged()?'Vira a página no ritmo escolhido':'O texto sobe sozinho; ajuste a velocidade'}</small></span>${ic('play')}</button>
  </div>
  <button class="btn ghost" data-a="reset">Restaurar ajustes padrão</button>`}
 $('#shB').addEventListener('click',e=>{const t=e.target.closest('button,[data-go]');if(!t)return;const ds=t.dataset;
  if(ds.tab){tocTab=ds.tab;refreshSheet();return}
- if(ds.go!=null){const i=+ds.go;if(innerWidth<=700)closeSheet();goTo(i,+(ds.o||0));setTimeout(update,50);if(innerWidth>700)setTimeout(refreshSheet,80);return}
+ if(ds.go!=null){markJump();const i=+ds.go;if(innerWidth<=700)closeSheet();goTo(i,+(ds.o||0));setTimeout(update,50);if(innerWidth>700)setTimeout(refreshSheet,80);return}
  if(ds.delbm){doc.bm=doc.bm.filter(b=>b.id!==ds.delbm);saveDoc();refreshSheet();update();return}
  if(ds.delhl){delHL(ds.delhl);return}
  if(ds.note){const h=doc.hl.find(x=>x.id===ds.note);h&&editNote(h);return}
  if(ds.a==='copyall'){copyText(exportMD());return}
  if(ds.a==='dlall'){download(doc.title.replace(/[\\/:*?"<>|]+/g,'-')+' - destaques.md',exportMD());return}
  if(ds.a==='auto'){closeSheet();startAuto();return}
+ if(ds.a==='rsvp'){closeSheet();openRSVP();return}
  if(ds.a==='reset'){keepPos(()=>{const keep={sort:S.sort,rulerY:S.rulerY};Object.assign(S,DEF,keep);applyS();renderDoc()});refreshSheet();return}
  if(ds.set){const k=ds.set;let v=ds.v;if(v==='true')v=true;else if(v==='false')v=false;keepPos(()=>{S[k]=v;applyS()});refreshSheet();return}
  if(ds.step){keepPos(()=>{S.size=Math.max(13,Math.min(34,S.size+ +ds.step));applyS()});refreshSheet();return}
  if(ds.tg){const k=ds.tg;keepPos(()=>{S[k]=!S[k];applyS();if(k==='bionic')renderDoc();if(k==='focus'){focusCur=-1;D.querySelectorAll('.cur').forEach(x=>x.classList.remove('cur'))}});refreshSheet();setTimeout(update,60);return}});
-$('#shB').addEventListener('input',e=>{const r=e.target.closest('[data-rng]');if(!r)return;const k=r.dataset.rng;keepPos(()=>{S[k]=+r.value;applyS()});r.nextElementSibling.textContent=k==='lh'?(+r.value).toFixed(2):r.value});
+$('#shB').addEventListener('input',e=>{const r=e.target.closest('[data-rng]');if(!r)return;const k=r.dataset.rng;if(k==='warm'||k==='dim'){S[k]=+r.value;saveS();applyNight();r.nextElementSibling.textContent=r.value+'%';return}keepPos(()=>{S[k]=+r.value;applyS()});r.nextElementSibling.textContent=k==='lh'?(+r.value).toFixed(2):r.value});
 
 /* ---------- busca ---------- */
 function fold(s){let o='';for(let k=0;k<s.length;k++){const c=s[k];const d=c.normalize('NFD')[0].toLowerCase();o+=d.length===1?d:c}return o}
@@ -718,7 +847,7 @@ function runSearch(q){const old=[...hitMap.keys()];hitMap=new Map();hits=[];hi=-
 function showHit(){$('#fn').textContent=hits.length?`${hi+1} de ${hits.length}${hits.length>=3000?'+':''}`:'0 resultados';
  D.querySelectorAll('mark.sr.on').forEach(m=>m.classList.remove('on'));if(hi<0)return;
  const ms=D.querySelectorAll(`mark.sr[data-k="${hi}"]`);ms.forEach(m=>m.classList.add('on'));
- if(ms[0]){const r=ms[0].getBoundingClientRect();if(r.top<130||r.bottom>innerHeight-90)window.scrollTo({top:scrollY+r.top-innerHeight*.35})}}
+ if(ms[0]){markJump();const r=ms[0].getBoundingClientRect();if(paged()){const pgI=Math.floor((r.left-D.getBoundingClientRect().left+2)/pageW);if(pgI!==curPage)setPage(pgI)}else if(r.top<130||r.bottom>innerHeight-90)window.scrollTo({top:scrollY+r.top-innerHeight*.35})}}
 function stepHit(d){if(!hits.length)return;hi=(hi+d+hits.length)%hits.length;showHit()}
 function openFind(){$('#find').hidden=false;R.classList.remove('imm');const f=$('#fq');f.focus();f.select();if(f.value)runSearch(f.value)}
 function closeFind(){$('#find').hidden=true;const old=[...hitMap.keys()];hitMap=new Map();hits=[];hi=-1;old.forEach(paint);$('#fn').textContent=''}
@@ -734,28 +863,40 @@ window.addEventListener('pointermove',e=>{if(!S.ruler||R.hidden)return;if(rulerD
 window.addEventListener('pointerup',()=>{if(rulerDrag){rulerDrag=false;saveS()}});
 let autoOn=false,autoPaused=false,autoLast=0,autoAcc=0;
 const pxs=()=>Math.round(10*Math.pow(1.32,S.speed));
-function autoUI(){$('#auto').hidden=!autoOn;$('#aVal').textContent=`Velocidade ${S.speed}`;$('#aPlay').innerHTML=autoPaused?ic('play'):ic('pause');$('#aPlay').setAttribute('aria-label',autoPaused?'Continuar':'Pausar')}
-function startAuto(){autoOn=true;autoPaused=false;autoLast=0;R.classList.add('imm');autoUI();requestAnimationFrame(tick)}
+const autoWpm=()=>100+25*S.speed;
+function autoUI(){$('#auto').hidden=!autoOn;$('#aVal').textContent=paged()?`${autoWpm()} palavras/min`:`Velocidade ${S.speed}`;$('#aPlay').innerHTML=autoPaused?ic('play'):ic('pause');$('#aPlay').setAttribute('aria-label',autoPaused?'Continuar':'Pausar')}
+function startAuto(){autoOn=true;autoPaused=false;autoLast=0;autoAcc=0;R.classList.add('imm');autoUI();requestAnimationFrame(tick)}
 function stopAuto(){if(autoOn)R.classList.remove('imm');autoOn=false;autoUI()}
-function tick(t){if(!autoOn)return;if(!autoPaused){if(autoLast){autoAcc+=(t-autoLast)/1000*pxs();const d=Math.floor(autoAcc);if(d>=1){autoAcc-=d;window.scrollBy(0,d)}
-  if(scrollY+innerHeight>=document.documentElement.scrollHeight-2){autoPaused=true;autoUI()}}autoLast=t}else autoLast=0;requestAnimationFrame(tick)}
+function tick(t){if(!autoOn)return;if(!autoPaused){if(autoLast){
+  if(paged()){autoAcc+=(t-autoLast)/1000;const per=Math.max(4,doc.words/pageCount()/autoWpm()*60);if(autoAcc>=per){autoAcc=0;if(curPage>=pageCount()-1){autoPaused=true;autoUI()}else turn(1)}}
+  else{autoAcc+=(t-autoLast)/1000*pxs();const d=Math.floor(autoAcc);if(d>=1){autoAcc-=d;window.scrollBy(0,d)}
+  if(scrollY+innerHeight>=document.documentElement.scrollHeight-2){autoPaused=true;autoUI()}}}autoLast=t}else autoLast=0;requestAnimationFrame(tick)}
 $('#aSlow').onclick=()=>{S.speed=Math.max(1,S.speed-1);saveS();autoUI()};$('#aFast').onclick=()=>{S.speed=Math.min(12,S.speed+1);saveS();autoUI()};
 $('#aPlay').onclick=()=>{autoPaused=!autoPaused;autoUI()};$('#aStop').onclick=()=>{stopAuto();R.classList.remove('imm')};
 
 /* ---------- eventos do leitor ---------- */
 let raf=0,dragging=false;
-window.addEventListener('scroll',()=>{if(R.hidden)return;userScrolled=true;
+window.addEventListener('scroll',()=>{if(R.hidden)return;userScrolled=true;act();
  const y=scrollY,dy=y-lastY;lastY=y;
  if(!autoOn&&$('#find').hidden&&$('#sheet').hidden){if(dy>8&&y>200)R.classList.add('imm');else if(dy<-12)R.classList.remove('imm')}
  if(popMode==='edit')hidePop();
  if(!raf)raf=requestAnimationFrame(()=>{raf=0;update()})},{passive:true});
-let rzT;window.addEventListener('resize',()=>{if(R.hidden)return;clearTimeout(rzT);const p=doc?doc.pos:null;rzT=setTimeout(()=>{placeRuler();if(p)goTo(p.i,p.o)},150)});
-document.addEventListener('pointerdown',e=>{lastPointer=e.pointerType||'mouse';if(!e.target.closest('.menu,[data-menu]'))closeMenu();if(autoOn&&!autoPaused&&D.contains(e.target)){autoPaused=true;autoUI()}},true);
+let rzT;window.addEventListener('resize',()=>{if(R.hidden)return;clearTimeout(rzT);const p=doc?doc.pos:null;rzT=setTimeout(()=>{placeRuler();layoutPaged();if(p)goTo(p.i,p.o)},150)});
+document.addEventListener('pointerdown',e=>{lastPointer=e.pointerType||'mouse';act();if(!e.target.closest('.menu,[data-menu]'))closeMenu();if(autoOn&&!autoPaused&&D.contains(e.target)){autoPaused=true;autoUI()}},true);
 let selT;document.addEventListener('selectionchange',()=>{clearTimeout(selT);selT=setTimeout(onSel,lastPointer==='touch'?450:200)});
-D.addEventListener('click',e=>{const s=getSelection();if(s&&!s.isCollapsed)return;
+D.addEventListener('click',e=>{if(Date.now()-noClick<450)return;const s=getSelection();if(s&&!s.isCollapsed)return;
  const m=e.target.closest('mark.hl');if(m){const h=doc.hl.find(x=>x.id===m.dataset.h);if(h){curHL=h.id;showPop('edit',m.getBoundingClientRect(),h.c)}return}
- if(popMode){hidePop();return}if(!autoOn)R.classList.toggle('imm')});
-$('#prog').addEventListener('input',e=>{dragging=true;const p=posOfFrac(e.target.value/1000);goTo(p.i,p.o);const ch=chapterAt(p.i);$('#chap').textContent=ch!=null?plain(ch):doc.title;$('#pct').textContent=Math.round(e.target.value/10)+'%'});
+ if(popMode){hidePop();return}
+ if(paged()){const r=PG.getBoundingClientRect(),x=(e.clientX-r.left)/r.width;if(x<.28){turn(-1);return}if(x>.72){turn(1);return}}
+ if(!autoOn)R.classList.toggle('imm')});
+let sw=null,noClick=0,lastWheel=0;
+PG.addEventListener('scroll',()=>{if(PG.scrollLeft||PG.scrollTop){PG.scrollLeft=0;PG.scrollTop=0}});
+PG.addEventListener('pointerdown',e=>{if(paged()&&e.pointerType!=='mouse')sw={x:e.clientX,y:e.clientY,t:Date.now()}});
+PG.addEventListener('pointerup',e=>{if(!sw)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y,dt=Date.now()-sw.t;sw=null;const s=getSelection();
+ if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.3&&dt<900&&(!s||s.isCollapsed)){noClick=Date.now();turn(dx<0?1:-1)}});
+PG.addEventListener('pointercancel',()=>sw=null);
+PG.addEventListener('wheel',e=>{if(!paged())return;e.preventDefault();const d=Math.abs(e.deltaY)>=Math.abs(e.deltaX)?e.deltaY:e.deltaX;if(Math.abs(d)<6||Date.now()-lastWheel<380)return;lastWheel=Date.now();turn(d>0?1:-1)},{passive:false});
+$('#prog').addEventListener('input',e=>{dragging=true;markJump();const p=posOfFrac(e.target.value/1000);goTo(p.i,p.o);const ch=chapterAt(p.i);$('#chap').textContent=ch!=null?plain(ch):doc.title;$('#pct').textContent=Math.round(e.target.value/10)+'%'});
 $('#prog').addEventListener('change',()=>{dragging=false;update()});
 $('#backBtn').onclick=$('#endBack').onclick=()=>{if(location.hash==='#ler')history.back();else closeDoc()};
 window.addEventListener('hashchange',()=>{if(location.hash!=='#ler'&&doc)closeDoc()});
@@ -766,27 +907,81 @@ function toggleBM(){const p=curPos();const ex=doc.bm.find(b=>b.i===p.i);
  else{let i=p.i;while(i<blocks.length-1&&!blocks[i].n)i++;const t=plain(i).trim();doc.bm.push({id:uid(),i:p.i,o:p.o,at:Date.now(),text:t.length>110?t.slice(0,110)+'…':t||'Posição marcada'});toast('Posição marcada')}
  saveDoc();update();refreshSheet()}
 $('#shClose').onclick=$('#scrim').onclick=closeSheet;
-document.addEventListener('keydown',e=>{if(!$('#dlg').hidden)return;const typing=/^(input|textarea|select)$/i.test(e.target.tagName);
+document.addEventListener('keydown',e=>{if(!$('#dlg').hidden)return;act();const typing=/^(input|textarea|select)$/i.test(e.target.tagName);
+ if(rs.on){const k=e.key;if(k==='Escape')closeRSVP();else if(k===' '||k==='Enter'){e.preventDefault();rsToggle()}else if(k==='ArrowLeft'){e.preventDefault();rsBack()}else if(k==='ArrowRight'){e.preventDefault();rsFwd()}else if(k==='ArrowUp'||k==='+'||k==='='){e.preventDefault();rsSpeed(25)}else if(k==='ArrowDown'||k==='-'){e.preventDefault();rsSpeed(-25)}return}
  if(e.key==='Escape'){closeMenu();if(!$('#pop').hidden){hidePop();return}if(sheetKind){closeSheet();return}if(!$('#find').hidden){closeFind();return}if(autoOn){stopAuto();return}}
  if(R.hidden||typing||e.ctrlKey&&e.key!=='f'||e.metaKey&&e.key!=='f'||e.altKey)return;
  const k=e.key;
  if((e.ctrlKey||e.metaKey)&&k==='f'||k==='/'){e.preventDefault();openFind()}
  else if(k==='f'||k==='F'){keepPos(()=>{S.focus=!S.focus;applyS()});focusCur=-1;D.querySelectorAll('.cur').forEach(x=>x.classList.remove('cur'));setTimeout(update,40);toast(S.focus?'Modo foco ligado':'Modo foco desligado')}
  else if(k==='m'||k==='M')toggleBM();
+ else if(k==='p'||k==='P'){keepPos(()=>{S.mode=paged()?'scroll':'page';applyS()});refreshSheet();toast(paged()?'Modo página':'Modo rolagem')}
+ else if(k==='r'||k==='R')openRSVP();
+ else if(k==='n'||k==='N'){S.night=nightOn()?'off':'on';applyNight();saveS();refreshSheet();toast(nightOn()?'Filtro noturno ligado':'Filtro noturno desligado')}
  else if(k==='a'||k==='A'){autoOn?stopAuto():startAuto()}
  else if(k==='+'||k==='='){keepPos(()=>{S.size=Math.min(34,S.size+1);applyS()})}
  else if(k==='-'){keepPos(()=>{S.size=Math.max(13,S.size-1);applyS()})}
  else if(k==='t'||k==='T')openSheet('toc');
- else if(k==='ArrowRight'||k==='PageDown'||(k===' '&&!e.shiftKey)){e.preventDefault();window.scrollBy({top:innerHeight-120,behavior:'smooth'})}
- else if(k==='ArrowLeft'||k==='PageUp'||(k===' '&&e.shiftKey)){e.preventDefault();window.scrollBy({top:-(innerHeight-120),behavior:'smooth'})}});
+ else if(k==='ArrowRight'||k==='PageDown'||k==='ArrowDown'&&paged()||(k===' '&&!e.shiftKey)){e.preventDefault();if(paged())turn(1);else window.scrollBy({top:innerHeight-120,behavior:'smooth'})}
+ else if(k==='ArrowLeft'||k==='PageUp'||k==='ArrowUp'&&paged()||(k===' '&&e.shiftKey)){e.preventDefault();if(paged())turn(-1);else window.scrollBy({top:-(innerHeight-120),behavior:'smooth'})}});
 const flush=()=>{if(doc){update();clearTimeout(saveT);saveDoc()}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});window.addEventListener('pagehide',flush);
+
+/* ---------- filtro noturno ---------- */
+function nightOn(){const h=new Date().getHours();return S.night==='on'||(S.night==='auto'&&(h>=19||h<6))}
+function applyNight(){const n=$('#night'),on=nightOn();n.hidden=!on;if(on){n.children[0].style.opacity=(S.warm/100*.6).toFixed(3);n.children[1].style.opacity=(S.dim/100).toFixed(3)}}
+setInterval(applyNight,60000);
+
+/* ---------- leitura rápida ---------- */
+const rs={on:false,play:false,i:0,k:0,toks:[],tm:0};
+const END=/[.!?…]["'”»)\]]*$/;
+function rsToks(i){const t=plain(i),out=[],re=/\S+/g;let m;while(m=re.exec(t))out.push({w:m[0],s:m.index});return out}
+function rsNext(i,d){i+=d;while(i>=0&&i<blocks.length&&!(blocks[i].n>0))i+=d;return i}
+function openRSVP(){if(!doc||R.hidden)return;stopAuto();closeSheet();hidePop();if(!$('#find').hidden)closeFind();update();
+ const p=doc.pos;let i=p.i;if(!blocks[i]||!blocks[i].n)i=rsNext(i,1);if(i<0||i>=blocks.length){toast('Não há texto daqui em diante.');return}
+ rs.i=i;rs.toks=rsToks(i);const ch=i===p.i?Math.round(blocks[i].n*p.o):0;rs.k=Math.max(0,rs.toks.findIndex(t=>t.s+t.w.length>ch));
+ rs.on=true;rs.play=false;RSV.hidden=false;rsUI();rsShow()}
+function closeRSVP(){clearTimeout(rs.tm);rs.play=false;rs.on=false;RSV.hidden=true;const t=rs.toks[rs.k];const n=blocks[rs.i]&&blocks[rs.i].n;goTo(rs.i,t&&n?t.s/n:0);setTimeout(update,30)}
+function orp(w){const lead=(w.match(/^[^\p{L}\p{N}]*/u)||[''])[0].length,c=w.length-lead;return Math.min(w.length-1,lead+(c<=1?0:c<=5?1:c<=9?2:c<=13?3:4))}
+function rsShow(){const t=rs.toks[rs.k];if(!t)return;const w=t.w,p=orp(w),W=$('#rsW').children;
+ W[0].textContent=w.slice(0,p);W[1].textContent=w.slice(p,p+1);W[2].textContent=w.slice(p+1);
+ const ch=chapterAt(rs.i);$('#rsCh').textContent=ch!=null?plain(ch):doc.title;$('#rsP').style.width=(fracAt(rs.i,t.s)*100).toFixed(2)+'%';
+ if(rs.play){$('#rsCtx').textContent=''}else{const a=Math.max(0,rs.k-14),b=Math.min(rs.toks.length,rs.k+15);
+  $('#rsCtx').innerHTML=(a>0?'… ':'')+rs.toks.slice(a,b).map((x,j)=>a+j===rs.k?`<b>${esc(x.w)}</b>`:esc(x.w)).join(' ')+(b<rs.toks.length?' …':'')}}
+function rsDelay(){const t=rs.toks[rs.k],w=t.w;let f=1;if(END.test(w))f=2.3;else if(/[,;:—–]["'”»)]*$/.test(w))f=1.6;if(w.length>9)f+=.35;if(rs.k===rs.toks.length-1)f+=/^h[123]$/.test(blocks[rs.i].t)?2:.8;return 60000/S.rsvp*f}
+function rsAdvance(){if(rs.k<rs.toks.length-1){rs.k++;return true}const n=rsNext(rs.i,1);if(n<0||n>=blocks.length)return false;rs.i=n;rs.toks=rsToks(n);rs.k=0;return true}
+function rsLoop(){clearTimeout(rs.tm);if(!rs.play)return;act();rs.tm=setTimeout(()=>{if(!rsAdvance()){rs.play=false;rsUI();rsShow();toast('Fim do texto');return}rsShow();rsLoop()},rsDelay())}
+function rsToggle(){rs.play=!rs.play;rsUI();rsShow();if(rs.play)rsLoop();else clearTimeout(rs.tm)}
+function rsUI(){$('#rsV').textContent=`${S.rsvp} palavras por minuto`;$('#rsPlay').innerHTML=rs.play?ic('pause'):ic('play');$('#rsPlay').setAttribute('aria-label',rs.play?'Pausar':'Iniciar')}
+function rsSpeed(d){S.rsvp=Math.max(100,Math.min(1000,S.rsvp+d));saveS();rsUI()}
+function rsBack(){if(rs.k===0){const p=rsNext(rs.i,-1);if(p<0)return;rs.i=p;rs.toks=rsToks(p);rs.k=rs.toks.length}let k=rs.k-1;while(k>0&&!END.test(rs.toks[k-1].w))k--;rs.k=Math.max(0,k);rsShow();if(rs.play)rsLoop()}
+function rsFwd(){while(rs.k<rs.toks.length-1&&!END.test(rs.toks[rs.k].w))rs.k++;rsAdvance();rsShow();if(rs.play)rsLoop()}
+const RSV=$('#rsvp');
+$('#rsStage').onclick=rsToggle;$('#rsPlay').onclick=rsToggle;$('#rsClose').onclick=closeRSVP;$('#rsBack').onclick=rsBack;$('#rsFwd').onclick=rsFwd;
+$('#rsSlow').onclick=()=>rsSpeed(-25);$('#rsFast').onclick=()=>rsSpeed(25);
+
+/* ---------- acompanhamento: tempo, velocidade e meta ---------- */
+let lastAct=Date.now(),lastTick=0,lastF=null,jumped=true,win={f:0,ms:0,skip:false};
+function act(){lastAct=Date.now()}
+function markJump(){jumped=true}
+function checkGoal(){const t=ST.days[dayKey()];if(!t||t.done)return;if(goalVal(t)>=ST.goal){t.done=true;const n=streak();toast(`Meta de hoje cumprida. Sequência: ${n} ${n===1?'dia':'dias'}.`)}}
+setInterval(()=>{const now=Date.now(),dt=lastTick?Math.min(now-lastTick,6000):0;lastTick=now;
+ if(!doc||R.hidden||document.hidden||now-lastAct>120000){jumped=true;return}
+ const k=dayKey(),t=ST.days[k]||(ST.days[k]={ms:0,w:0});t.ms+=dt;doc.readMs=(doc.readMs||0)+dt;
+ const f=doc.progress;
+ if(jumped||lastF==null){jumped=false;lastF=f;win={f,ms:0,skip:false};saveST();return}
+ const dw=(f-lastF)*doc.words;if(dw>0&&dw<4000)t.w+=dw;lastF=f;
+ win.ms+=dt;if(autoOn||rs.on)win.skip=true;
+ if(win.ms>=60000){const w=(f-win.f)*doc.words,rate=w/(win.ms/60000);if(!win.skip&&rate>=60&&rate<=1000){ST.wW+=w;ST.wMs+=win.ms}win={f,ms:0,skip:false}}
+ checkGoal();saveST()},5000);
 
 /* ---------- biblioteca: eventos ---------- */
 $('#openBtn').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{importFiles(e.target.files);e.target.value=''};
 $('#libQ').oninput=renderLib;$('#libSort').onchange=e=>{S.sort=e.target.value;saveS();renderLib()};
-$('#lib').addEventListener('click',e=>{const o=e.target.closest('[data-open]'),m=e.target.closest('[data-menu]'),a=e.target.closest('[data-act]');
+$('#goalBtn').onclick=goalDialog;
+$('#lib').addEventListener('click',async e=>{const o=e.target.closest('[data-open]'),m=e.target.closest('[data-menu]'),a=e.target.closest('[data-act]');
+ if(a&&a.dataset.act==='wreset'){if(await dialog({title:'Medir a velocidade de novo?',text:'A estimativa volta para 220 palavras por minuto até eu medir alguns minutos da sua leitura.',ok:'Medir de novo'})){ST.wW=0;ST.wMs=0;saveST();renderStats()}return}
  if(m){e.stopPropagation();bookMenu(m.dataset.menu,m)}else if(o)openDoc(o.dataset.open);else if(a&&a.dataset.act==='open')$('#file').click()});
 let dragN=0;
 window.addEventListener('dragenter',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){dragN++;$('#drop').hidden=false}});
@@ -799,10 +994,13 @@ const SAMPLE=`<h1>Guia do Leitor</h1><p>Este é um texto de exemplo para você e
 <h2>Deixando a leitura confortável</h2><p>O botão <strong>Aa</strong> abre os ajustes: tema claro, sépia, escuro ou preto, quatro fontes, tamanho do texto, espaço entre linhas, largura da coluna, alinhamento justificado e recuo de livro. A posição de leitura é mantida quando você muda qualquer ajuste.</p><p>Toque no meio do texto para esconder as barras e ler sem distrações. Rolar para cima traz as barras de volta.</p>
 <h2>Ferramentas para ler melhor</h2><p>O <strong>modo foco</strong> esmaece tudo, menos o parágrafo que está na altura dos seus olhos. Ajuda quando a página está cheia e a atenção escapa.</p><p>A <strong>régua de leitura</strong> desenha uma faixa iluminada e escurece o resto da tela. Arraste o botão amarelo para colocá-la onde preferir; no computador, ela acompanha o mouse.</p><p>As <strong>âncoras de leitura</strong> deixam em negrito o começo de cada palavra. Muita gente lê mais rápido assim; experimente e veja se funciona para você.</p><p>A <strong>rolagem automática</strong> sobe o texto sozinha. Use os botões de menos e mais para ajustar a velocidade; tocar no texto pausa.</p>
 <h2>Destaques, notas e marcadores</h2><p>Selecione um trecho e escolha uma das quatro cores. O botão de lápis cria uma nota ligada ao trecho. Toque num destaque para trocar a cor, editar a nota ou removê-lo.</p><p>O ícone de marcador no topo guarda a posição atual. Capítulos, marcadores e destaques ficam juntos no botão de lista, e você pode copiar todos os destaques de uma vez, prontos para colar em outro lugar.</p>
-<h2>Busca e navegação</h2><p>A lupa procura palavras no texto inteiro, sem se importar com acentos ou maiúsculas. Use as setas ou Enter para ir de um resultado a outro.</p><p>A barra no rodapé mostra quanto você já leu e quanto tempo falta, numa estimativa de ${WPM} palavras por minuto. Arraste a barra para pular para qualquer ponto.</p>
-<hr><p>No computador, há atalhos: barra para buscar, F para foco, M para marcador, A para rolagem automática, T para o índice, mais e menos para o tamanho, setas e espaço para avançar uma tela.</p>`;
+<h2>Busca e navegação</h2><p>A lupa procura palavras no texto inteiro, sem se importar com acentos ou maiúsculas. Use as setas ou Enter para ir de um resultado a outro.</p><p>A barra no rodapé mostra quanto você já leu e quanto tempo falta. Arraste a barra para pular para qualquer ponto.</p>
+<h2>Páginas, leitura rápida e noite</h2><p>Em <strong>Aa</strong>, escolha <strong>Páginas</strong> para ler como num livro: toque na lateral direita ou esquerda da tela, deslize o dedo, use as setas do teclado ou a roda do mouse para virar a página.</p><p>A <strong>leitura rápida</strong> mostra uma palavra por vez, no centro da tela, a partir de onde você parou. A letra vermelha é o ponto onde o olho deve pousar. Toque na palavra para pausar; pausado, o trecho ao redor aparece embaixo para você não se perder. Ao fechar, o texto volta exatamente para a palavra em que você estava.</p><p>O <strong>filtro noturno</strong> deixa a tela mais quente e mais escura. Pode ficar ligado sempre ou só das 19h às 6h.</p>
+<h2>Palavras, metas e velocidade</h2><p>Selecione uma palavra e toque no livro do menu para ver o significado no Dicio, no Michaelis ou no Wikcionário, procurar sinônimos ou traduzir.</p><p>Na biblioteca, <strong>Sua leitura</strong> mostra o tempo lido hoje, a meta diária, a sequência de dias e os últimos sete dias. Depois de alguns minutos lendo, o Leitor mede a sua velocidade real, e o tempo que falta passa a ser calculado para você, não por uma média.</p>
+<hr><p>No computador, há atalhos: barra para buscar, P para o modo página, R para a leitura rápida, F para foco, N para o filtro noturno, M para marcador, A para rolagem automática, T para o índice, mais e menos para o tamanho, setas e espaço para avançar.</p>`;
 $('#sampleBtn').onclick=async()=>{const ex=docs.find(d=>d.sample);if(ex)return openDoc(ex.id);const r=finish(fromHTML(SAMPLE));const d=await addDoc(Object.assign(r,{title:'Guia do Leitor (exemplo)',type:'GUIA'}));d.sample=true;await store.put(d);await renderLib();openDoc(d.id)};
 
+try{history.scrollRestoration='manual'}catch(e){}
 (async()=>{await store.open();applyS();R.hidden=true;$('#ruler').hidden=true;if(location.hash==='#ler')try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await renderLib()})();
 }
 </script>
