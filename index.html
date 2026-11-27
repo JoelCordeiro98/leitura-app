@@ -15,7 +15,7 @@
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{
  // pré-carrega as bibliotecas de leitura para funcionar offline
  const L=['pdfjs-dist@3.11.174/build/pdf.min.js','pdfjs-dist@3.11.174/build/pdf.worker.min.js','mammoth@1.8.0/mammoth.browser.min.js','jszip@3.10.1/dist/jszip.min.js','marked@12.0.2/marked.min.js'];
- caches.open('leitor-v3').then(c=>L.forEach(p=>{const u='https://cdn.jsdelivr.net/npm/'+p;c.match(u).then(m=>m||fetch(u,{mode:'no-cors'}).then(res=>c.put(u,res)).catch(()=>{}))}))}).catch(()=>{}))</script>
+ caches.open('leitor-v4').then(c=>L.forEach(p=>{const u='https://cdn.jsdelivr.net/npm/'+p;c.match(u).then(m=>m||fetch(u,{mode:'no-cors'}).then(res=>c.put(u,res)).catch(()=>{}))}))}).catch(()=>{}))</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@400;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap" rel="stylesheet">
@@ -318,7 +318,7 @@ mark.sr.on{background:#f08c00;color:#000}
    <div class="howto">
     <div><h3>Android (Chrome)</h3><ol><li>Abra o link do Leitor no Chrome.</li><li>Toque no menu ⋮.</li><li>Escolha <b>Adicionar à tela inicial</b> ou <b>Instalar app</b>.</li></ol></div>
     <div><h3>iPhone e iPad (Safari)</h3><ol><li>Abra o link do Leitor no Safari.</li><li>Toque em Compartilhar.</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li></ol></div>
-    <div><h3>Computador</h3><ol><li>Arraste arquivos para esta janela.</li><li>Atalhos no leitor: <b>/</b> busca, <b>P</b> modo página, <b>R</b> leitura rápida, <b>F</b> foco, <b>N</b> filtro noturno, <b>M</b> marcador, <b>A</b> rolagem, <b>+</b> e <b>−</b> tamanho.</li></ol></div>
+    <div><h3>Computador</h3><ol><li>Arraste arquivos para esta janela.</li><li>Atalhos no leitor: <b>/</b> busca, <b>P</b> modo página, <b>R</b> leitura rápida, <b>C</b> tela cheia, <b>F</b> foco, <b>N</b> filtro noturno, <b>M</b> marcador, <b>A</b> rolagem, <b>+</b> e <b>−</b> tamanho.</li></ol></div>
    </div>
   </section>
  </div>
@@ -332,6 +332,7 @@ mark.sr.on{background:#f08c00;color:#000}
   <button class="ib" id="findBtn" aria-label="Buscar no texto"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
   <button class="ib" id="tocBtn" aria-label="Índice, marcadores e destaques"><svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
   <button class="ib" id="bmBtn" aria-label="Marcar esta posição" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+  <button class="ib" id="fsBtn" aria-label="Tela cheia" hidden></button>
   <button class="ib" id="setBtn" aria-label="Ajustes de leitura"><svg class="i" viewBox="0 0 24 24"><path d="M3 19l5-14 5 14M5 14h6M14 19l3.5-9 3.5 9M15.2 16h4.6"/></svg></button>
  </header>
  <div id="find" hidden>
@@ -389,7 +390,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const IC={
  pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h9"/>',
  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',more:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
- x:'<path d="M6 6l12 12M18 6L6 18"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',play:'<path d="M7 4l13 8-13 8z"/>',pause:'<path d="M8 5v14M16 5v14"/>',dl:'<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>'};
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',expand:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',shrink:'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',play:'<path d="M7 4l13 8-13 8z"/>',pause:'<path d="M8 5v14M16 5v14"/>',dl:'<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24">${IC[n]}</svg>`;
 const CDN='https://cdn.jsdelivr.net/npm/';
 const LIB={pdf:CDN+'pdfjs-dist@3.11.174/build/pdf.min.js',pdfw:CDN+'pdfjs-dist@3.11.174/build/pdf.worker.min.js',mammoth:CDN+'mammoth@1.8.0/mammoth.browser.min.js',zip:CDN+'jszip@3.10.1/dist/jszip.min.js',marked:CDN+'marked@12.0.2/marked.min.js'};
@@ -413,7 +414,7 @@ const store={db:null,mem:{docs:new Map(),content:new Map()},
 };
 
 /* ---------- ajustes ---------- */
-const DEF={theme:'auto',font:'literata',size:19,lh:1.7,width:66,just:false,ind:false,bionic:false,focus:false,ruler:false,rulerY:.4,speed:4,sort:'recent',mode:'scroll',flip:'folha',night:'off',warm:50,dim:15,rsvp:300};
+const DEF={theme:'auto',font:'literata',size:19,lh:1.7,width:66,just:false,ind:false,bionic:false,focus:false,ruler:false,rulerY:.4,speed:4,sort:'recent',mode:'scroll',flip:'folha',fsAuto:false,night:'off',warm:50,dim:15,rsvp:300};
 const S=Object.assign({},DEF);
 try{Object.assign(S,JSON.parse(localStorage.getItem('leitor.ajustes')||'{}'))}catch(e){}
 const saveS=()=>{try{localStorage.setItem('leitor.ajustes',JSON.stringify(S))}catch(e){}};
@@ -761,7 +762,7 @@ function update(){if(!doc||R.hidden)return;const p=curPos();
  if(S.focus){const fy=S.ruler?S.rulerY*innerHeight:innerHeight*.38;const rb=(paged()?PG:D).getBoundingClientRect();const hit=document.elementFromPoint(rb.left+rb.width/2,fy);const he=hit&&hit.closest?hit.closest('#doc > [data-i]'):null;const c=he?+he.dataset.i:(focusCur>=0?focusCur:curPos(fy).i);if(c!==focusCur){if(els[focusCur])els[focusCur].classList.remove('cur');focusCur=c;els[c]&&els[c].classList.add('cur')}}
  clearTimeout(saveT);saveT=setTimeout(saveDoc,700)}
 function saveDoc(){if(doc){doc.opened=Date.now();store.put(doc)}}
-async function openDoc(id){busy('Abrindo…');try{
+async function openDoc(id){if(S.fsAuto&&fsOK&&!fsEl()){fsEnter(true);fsAutoOn=true}busy('Abrindo…');try{
  const d=(await store.all()).find(x=>x.id===id);const c=await store.content(id);
  if(!d||!c){toast('Não encontrei este arquivo neste aparelho.',true);return}
  doc=d;doc.hl=doc.hl||[];doc.bm=doc.bm||[];blocks=c;hitMap=new Map();hits=[];hi=-1;txtCache=[];foldCache=[];focusCur=-1;
@@ -772,7 +773,7 @@ async function openDoc(id){busy('Abrindo…');try{
  userScrolled=false;requestAnimationFrame(()=>{goTo(doc.pos.i,doc.pos.o);lastY=scrollY;update()});
  document.fonts&&document.fonts.ready.then(()=>{if(!userScrolled&&doc){layoutPaged();goTo(doc.pos.i,doc.pos.o)}});
  }finally{busy('')}}
-function closeDoc(){if(!doc)return;endFlip();if(rs.on)closeRSVP();stopAuto();clearTimeout(saveT);saveDoc();closeSheet();hidePop();R.hidden=true;$('#ruler').hidden=true;$('#lib').hidden=false;doc=null;D.innerHTML='';D.style.transform='';curPage=0;els=[];window.scrollTo(0,0);renderLib()}
+function closeDoc(){if(!doc)return;endFlip();if(fsAutoOn&&fsEl())fsExit();fsAutoOn=false;if(rs.on)closeRSVP();stopAuto();clearTimeout(saveT);saveDoc();closeSheet();hidePop();R.hidden=true;$('#ruler').hidden=true;$('#lib').hidden=false;doc=null;D.innerHTML='';D.style.transform='';curPage=0;els=[];window.scrollTo(0,0);renderLib()}
 
 /* ---------- destaques ---------- */
 let pend=null,popMode='',curHL=null,lastPointer='mouse';
@@ -843,6 +844,7 @@ function setHTML(){const seg=(k,opts)=>`<div class="seg">${opts.map(([v,l,st])=>
  const tg=(k,l,sub)=>`<button class="tg" role="switch" data-tg="${k}" aria-checked="${!!S[k]}"><span class="x">${l}<small>${sub}</small></span><span class="s"></span></button>`;
  return`<div class="grp"><h3>Modo de leitura</h3>${seg('mode',[['scroll','Rolagem'],['page','Páginas']])}${paged()?`<h3 style="margin-top:16px">Ao virar a página</h3>${seg('flip',[['folha','Folha'],['deslizar','Deslizar'],['nenhuma','Sem animação']])}`:''}</div>
  <div class="grp"><h3>Tema</h3><div class="sw">${Object.entries(THEMES).map(([k,[l,bg,fg]])=>`<button data-set="theme" data-v="${k}" aria-pressed="${S.theme===k}" style="background:${bg};color:${fg}"><span style="${k==='auto'?'background:#fff;color:#1b1d24;padding:0 6px;border-radius:6px':''}">${l}</span></button>`).join('')}</div></div>
+ <div class="grp"><h3>Tela cheia</h3>${fsOK?`<button class="btn" data-a="fs" style="width:100%;justify-content:center">${ic(fsEl()?'shrink':'expand')}${fsEl()?'Sair da tela cheia':'Entrar em tela cheia'}</button>${tg('fsAuto','Ao abrir um texto','Entra em tela cheia sozinho e sai quando você volta à biblioteca')}`:`<p class="mut" style="margin:0">Este navegador não permite tela cheia. No iPhone, instale o Leitor na tela de início: ele abre sem a barra do Safari.</p>`}</div>
  <div class="grp"><h3>Filtro noturno</h3>${seg('night',[['off','Desligado'],['on','Ligado'],['auto','Das 19h às 6h']])}
  <div class="rng" style="margin-top:10px"><span style="min-width:92px;text-align:left;color:var(--ink)">Tom quente</span><input type="range" min="0" max="100" step="5" value="${S.warm}" data-rng="warm" aria-label="Tom quente"><span>${S.warm}%</span></div>
  <div class="rng"><span style="min-width:92px;text-align:left;color:var(--ink)">Escurecer</span><input type="range" min="0" max="70" step="5" value="${S.dim}" data-rng="dim" aria-label="Escurecer"><span>${S.dim}%</span></div></div>
@@ -870,6 +872,7 @@ $('#shB').addEventListener('click',e=>{const t=e.target.closest('button,[data-go
  if(ds.a==='dlall'){download(doc.title.replace(/[\\/:*?"<>|]+/g,'-')+' - destaques.md',exportMD());return}
  if(ds.a==='auto'){closeSheet();startAuto();return}
  if(ds.a==='rsvp'){closeSheet();openRSVP();return}
+ if(ds.a==='fs'){fsToggle();return}
  if(ds.a==='reset'){keepPos(()=>{const keep={sort:S.sort,rulerY:S.rulerY};Object.assign(S,DEF,keep);applyS();renderDoc()});refreshSheet();return}
  if(ds.set){const k=ds.set;let v=ds.v;if(v==='true')v=true;else if(v==='false')v=false;keepPos(()=>{S[k]=v;applyS()});refreshSheet();return}
  if(ds.step){keepPos(()=>{S.size=Math.max(13,Math.min(34,S.size+ +ds.step));applyS()});refreshSheet();return}
@@ -958,6 +961,7 @@ document.addEventListener('keydown',e=>{if(!$('#dlg').hidden)return;act();const 
  else if(k==='m'||k==='M')toggleBM();
  else if(k==='p'||k==='P'){keepPos(()=>{S.mode=paged()?'scroll':'page';applyS()});refreshSheet();toast(paged()?'Modo página':'Modo rolagem')}
  else if(k==='r'||k==='R')openRSVP();
+ else if((k==='c'||k==='C')&&fsOK)fsToggle();
  else if(k==='n'||k==='N'){S.night=nightOn()?'off':'on';applyNight();saveS();refreshSheet();toast(nightOn()?'Filtro noturno ligado':'Filtro noturno desligado')}
  else if(k==='a'||k==='A'){autoOn?stopAuto():startAuto()}
  else if(k==='+'||k==='='){keepPos(()=>{S.size=Math.min(34,S.size+1);applyS()})}
@@ -967,6 +971,18 @@ document.addEventListener('keydown',e=>{if(!$('#dlg').hidden)return;act();const 
  else if(k==='ArrowLeft'||k==='PageUp'||k==='ArrowUp'&&paged()||(k===' '&&e.shiftKey)){e.preventDefault();if(paged())turn(-1);else window.scrollBy({top:-(innerHeight-120),behavior:'smooth'})}});
 const flush=()=>{if(doc){update();clearTimeout(saveT);saveDoc()}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});window.addEventListener('pagehide',flush);
+
+/* ---------- tela cheia ---------- */
+const fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
+let fsAutoOn=false;
+function fsEnter(silent){const el=document.documentElement;const fail=()=>{if(!silent)toast('O navegador não permitiu a tela cheia aqui.',true)};
+ try{const p=el.requestFullscreen?el.requestFullscreen({navigationUI:'hide'}):(el.webkitRequestFullscreen&&el.webkitRequestFullscreen());if(p&&p.catch)p.catch(fail)}catch(e){fail()}}
+function fsExit(){try{const p=document.exitFullscreen?document.exitFullscreen():(document.webkitExitFullscreen&&document.webkitExitFullscreen());if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+function fsToggle(){if(fsEl()){fsAutoOn=false;fsExit()}else fsEnter(false)}
+function fsUI(){const b=$('#fsBtn'),on=!!fsEl();b.hidden=!fsOK;b.innerHTML=ic(on?'shrink':'expand');b.setAttribute('aria-label',on?'Sair da tela cheia':'Tela cheia');if(sheetKind==='set')refreshSheet()}
+document.addEventListener('fullscreenchange',fsUI);document.addEventListener('webkitfullscreenchange',fsUI);
+$('#fsBtn').onclick=fsToggle;
 
 /* ---------- filtro noturno ---------- */
 function nightOn(){const h=new Date().getHours();return S.night==='on'||(S.night==='auto'&&(h>=19||h<6))}
@@ -1032,17 +1048,17 @@ window.addEventListener('drop',e=>{e.preventDefault();dragN=0;$('#drop').hidden=
 
 const SAMPLE=`<h1>Guia do Leitor</h1><p>Este é um texto de exemplo para você experimentar as ferramentas. Pode destacar, anotar e apagar à vontade; para removê-lo, use o menu do livro na biblioteca.</p>
 <h2>Abrindo seus textos</h2><p>Toque em <strong>Abrir arquivo</strong> na biblioteca ou arraste arquivos para a janela. O Leitor entende PDF com texto, Word (.docx), LibreOffice (.odt), EPUB, TXT, Markdown e HTML. Tudo é convertido para uma página limpa, que se ajusta à largura da tela.</p><p>Os arquivos não saem do seu aparelho: são lidos aqui mesmo e guardados no armazenamento do navegador, junto com o progresso, os marcadores e os destaques.</p><p>Se o seu texto usa estilos de título, ou parágrafos como “Capítulo 3”, eles aparecem no índice, no botão de lista no topo.</p>
-<h2>Deixando a leitura confortável</h2><p>O botão <strong>Aa</strong> abre os ajustes: tema claro, sépia, escuro ou preto, quatro fontes, tamanho do texto, espaço entre linhas, largura da coluna, alinhamento justificado e recuo de livro. A posição de leitura é mantida quando você muda qualquer ajuste.</p><p>Toque no meio do texto para esconder as barras e ler sem distrações. Rolar para cima traz as barras de volta.</p>
+<h2>Deixando a leitura confortável</h2><p>O botão <strong>Aa</strong> abre os ajustes: tema claro, sépia, escuro ou preto, quatro fontes, tamanho do texto, espaço entre linhas, largura da coluna, alinhamento justificado e recuo de livro. A posição de leitura é mantida quando você muda qualquer ajuste.</p><p>Toque no meio do texto para esconder as barras e ler sem distrações. Rolar para cima traz as barras de volta.</p><p>O botão de <strong>tela cheia</strong>, no topo, esconde também as barras do navegador e do celular. Nos ajustes, dá para entrar em tela cheia sempre que abrir um texto. No iPhone, o Safari não permite tela cheia; instale o Leitor na tela de início e ele já abre sem a barra do navegador.</p>
 <h2>Ferramentas para ler melhor</h2><p>O <strong>modo foco</strong> esmaece tudo, menos o parágrafo que está na altura dos seus olhos. Ajuda quando a página está cheia e a atenção escapa.</p><p>A <strong>régua de leitura</strong> desenha uma faixa iluminada e escurece o resto da tela. Arraste o botão amarelo para colocá-la onde preferir; no computador, ela acompanha o mouse.</p><p>As <strong>âncoras de leitura</strong> deixam em negrito o começo de cada palavra. Muita gente lê mais rápido assim; experimente e veja se funciona para você.</p><p>A <strong>rolagem automática</strong> sobe o texto sozinha. Use os botões de menos e mais para ajustar a velocidade; tocar no texto pausa.</p>
 <h2>Destaques, notas e marcadores</h2><p>Selecione um trecho e escolha uma das quatro cores. O botão de lápis cria uma nota ligada ao trecho. Toque num destaque para trocar a cor, editar a nota ou removê-lo.</p><p>O ícone de marcador no topo guarda a posição atual. Capítulos, marcadores e destaques ficam juntos no botão de lista, e você pode copiar todos os destaques de uma vez, prontos para colar em outro lugar.</p>
 <h2>Busca e navegação</h2><p>A lupa procura palavras no texto inteiro, sem se importar com acentos ou maiúsculas. Use as setas ou Enter para ir de um resultado a outro.</p><p>A barra no rodapé mostra quanto você já leu e quanto tempo falta. Arraste a barra para pular para qualquer ponto.</p>
 <h2>Páginas, leitura rápida e noite</h2><p>Em <strong>Aa</strong>, escolha <strong>Páginas</strong> para ler como num livro: toque na lateral direita ou esquerda da tela, deslize o dedo, use as setas do teclado ou a roda do mouse para virar a página. A folha vira como num livro de papel; se preferir, troque para deslizar ou sem animação.</p><p>A <strong>leitura rápida</strong> mostra uma palavra por vez, no centro da tela, a partir de onde você parou. A letra vermelha é o ponto onde o olho deve pousar. Toque na palavra para pausar; pausado, o trecho ao redor aparece embaixo para você não se perder. Ao fechar, o texto volta exatamente para a palavra em que você estava.</p><p>O <strong>filtro noturno</strong> deixa a tela mais quente e mais escura. Pode ficar ligado sempre ou só das 19h às 6h.</p>
 <h2>Palavras, metas e velocidade</h2><p>Selecione uma palavra e toque no livro do menu para ver o significado no Dicio, no Michaelis ou no Wikcionário, procurar sinônimos ou traduzir.</p><p>Na biblioteca, <strong>Sua leitura</strong> mostra o tempo lido hoje, a meta diária, a sequência de dias e os últimos sete dias. Depois de alguns minutos lendo, o Leitor mede a sua velocidade real, e o tempo que falta passa a ser calculado para você, não por uma média.</p>
-<hr><p>No computador, há atalhos: barra para buscar, P para o modo página, R para a leitura rápida, F para foco, N para o filtro noturno, M para marcador, A para rolagem automática, T para o índice, mais e menos para o tamanho, setas e espaço para avançar.</p>`;
+<hr><p>No computador, há atalhos: barra para buscar, P para o modo página, R para a leitura rápida, C para tela cheia, F para foco, N para o filtro noturno, M para marcador, A para rolagem automática, T para o índice, mais e menos para o tamanho, setas e espaço para avançar.</p>`;
 $('#sampleBtn').onclick=async()=>{const ex=docs.find(d=>d.sample);if(ex)return openDoc(ex.id);const r=finish(fromHTML(SAMPLE));const d=await addDoc(Object.assign(r,{title:'Guia do Leitor (exemplo)',type:'GUIA'}));d.sample=true;await store.put(d);await renderLib();openDoc(d.id)};
 
 try{history.scrollRestoration='manual'}catch(e){}
-(async()=>{await store.open();applyS();R.hidden=true;$('#ruler').hidden=true;if(location.hash==='#ler')try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await renderLib()})();
+(async()=>{await store.open();applyS();fsUI();R.hidden=true;$('#ruler').hidden=true;if(location.hash==='#ler')try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await renderLib()})();
 }
 </script>
 </body>
